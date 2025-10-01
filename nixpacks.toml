@@ -10,7 +10,7 @@ nixPkgs = [
 
 [phases.install]
 cmds = [
-  "npm config set python $(command -v python3)",
+  "export PYTHON=$(which python3)",
   "npm install --omit=dev"
 ]
 
