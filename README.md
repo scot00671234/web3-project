@@ -49,6 +49,18 @@ npm run dev
 
 6. Open [http://localhost:3000](http://localhost:3000)
 
+## 🌐 Nixpacks Deployment
+
+The repo includes a `nixpacks.toml` that defines the build and run phases for deployment to any VPS supporting [Nixpacks](https://nixpacks.com/).
+
+```bash
+nixpacks build . -o output
+docker load < output/image.tar
+docker run -p 3000:3000 <image-id>
+```
+
+During deploy Nixpacks installs dependencies, runs `npm run build`, and starts the app with `npm run start`.
+
 ## 🧪 Testing
 
 The platform is configured for **Solana Devnet** by default.
