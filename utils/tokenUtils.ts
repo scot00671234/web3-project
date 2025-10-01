@@ -1,4 +1,4 @@
-import { Connection, PublicKey, Transaction, SystemProgram, Keypair } from '@solana/web3.js'
+import { Connection, PublicKey, Transaction, SystemProgram, Keypair, ComputeBudgetProgram } from '@solana/web3.js'
 import { 
   TOKEN_PROGRAM_ID, 
   createInitializeMintInstruction,
@@ -30,6 +30,15 @@ export async function createToken(
     // Get the minimum lamports for rent exemption
     const lamports = await getMinimumBalanceForRentExemptMint(connection)
     
+    // Calculate mint amount using BigInt to avoid precision loss
+    const mintAmount = (BigInt(Math.trunc(initialSupply)) * (10n ** BigInt(decimals)))
+
+    // Optional priority fee (helps on mainnet to avoid blockheight expiry)
+    const computeIxs = [
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
+      ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 10_000 }) // 0.00001 SOL per 1M CU
+    ]
+
     // Get associated token account for the creator
     const associatedTokenAddress = await getAssociatedTokenAddress(
       mintKeypair.publicKey,
@@ -37,6 +46,7 @@ export async function createToken(
     )
     
     const transaction = new Transaction().add(
+      ...computeIxs,
       // Create mint account
       SystemProgram.createAccount({
         fromPubkey: payer,
@@ -65,7 +75,7 @@ export async function createToken(
         mintKeypair.publicKey,
         associatedTokenAddress,
         payer,
-        initialSupply * Math.pow(10, decimals)
+        mintAmount
       )
     )
 
@@ -74,15 +84,34 @@ export async function createToken(
     transaction.feePayer = payer
     transaction.partialSign(mintKeypair)
 
-    const signature = await sendTransaction(transaction, connection, {
+    let signature = await sendTransaction(transaction, connection, {
       skipPreflight: false,
-      preflightCommitment: 'confirmed'
+      preflightCommitment: 'confirmed',
+      maxRetries: 5
     })
     
-    await connection.confirmTransaction({
-      signature,
-      ...latestBlockhash
-    }, 'confirmed')
+    try {
+      await connection.confirmTransaction({
+        signature,
+        ...latestBlockhash
+      }, 'confirmed')
+    } catch (e: any) {
+      const msg = (e?.message || '').toLowerCase()
+      if (msg.includes('block height exceeded') || msg.includes('expired')) {
+        // Retry once with a fresh blockhash (user may need to approve again)
+        const fresh = await connection.getLatestBlockhash('confirmed')
+        transaction.recentBlockhash = fresh.blockhash
+        transaction.partialSign(mintKeypair)
+        signature = await sendTransaction(transaction, connection, {
+          skipPreflight: false,
+          preflightCommitment: 'confirmed',
+          maxRetries: 5
+        })
+        await connection.confirmTransaction({ signature, ...fresh }, 'confirmed')
+      } else {
+        throw e
+      }
+    }
     
     // Store token metadata (in production, save to your database/IPFS)
     console.log('Token created:', {

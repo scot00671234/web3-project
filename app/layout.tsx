@@ -6,8 +6,8 @@ import ClientLayout from '@/components/ClientLayout'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Meme Dex - Create, Trade, Earn',
-  description: 'Create and trade meme tokens on Solana with zero upfront costs',
+  title: 'Lynxier - Create, Trade, Earn',
+  description: 'Create and trade tokens on Solana',
   icons: {
     icon: '/logo.svg',
     apple: '/logo.svg',
