@@ -20,7 +20,9 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     <ThemeProvider>
       <WalletContextProvider>
         <Navbar />
-        {children}
+        <div className="pt-24">
+          {children}
+        </div>
       </WalletContextProvider>
     </ThemeProvider>
   )

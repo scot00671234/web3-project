@@ -24,7 +24,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" type="image/svg+xml" href="/logo.svg" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-gray-50 dark:bg-gray-900 transition-colors duration-300`}>
         <ClientLayout>
           {children}
         </ClientLayout>
