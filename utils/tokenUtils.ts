@@ -9,8 +9,10 @@ import {
   getAssociatedTokenAddress
 } from '@solana/spl-token'
 
-// Platform fee wallet
-const PLATFORM_WALLET = new PublicKey('CX6NvKqJwM1LVJmHL8XEpEcn8wrrEfLdxYhvNfZAS1P9')
+// Platform fee wallet - from environment variable
+const PLATFORM_WALLET = new PublicKey(
+  process.env.NEXT_PUBLIC_PLATFORM_WALLET || 'CX6NvKqJwM1LVJmHL8XEpEcn8wrrEfLdxYhvNfZAS1P9'
+)
 
 export async function createToken(
   connection: Connection,

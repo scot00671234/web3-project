@@ -6,9 +6,11 @@ import {
   createTransferInstruction
 } from '@solana/spl-token'
 
-// Platform fee wallet
-const PLATFORM_WALLET = new PublicKey('CX6NvKqJwM1LVJmHL8XEpEcn8wrrEfLdxYhvNfZAS1P9')
-const PLATFORM_FEE_PERCENT = 0.005 // 0.5% platform fee
+// Platform fee wallet - from environment variable
+const PLATFORM_WALLET = new PublicKey(
+  process.env.NEXT_PUBLIC_PLATFORM_WALLET || 'CX6NvKqJwM1LVJmHL8XEpEcn8wrrEfLdxYhvNfZAS1P9'
+)
+const PLATFORM_FEE_PERCENT = parseFloat(process.env.NEXT_PUBLIC_PLATFORM_FEE_PERCENT || '0.005')
 
 export async function executeSwap(
   connection: Connection,
