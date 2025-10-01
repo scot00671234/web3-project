@@ -5,6 +5,7 @@ nixPkgs = [
   "pkg-config",
   "libusb1",
   "systemd",
+  "udev",
   "gcc",
   "gnumake"
 ]
