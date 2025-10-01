@@ -68,14 +68,21 @@ export async function createToken(
         initialSupply * Math.pow(10, decimals)
       )
     )
-    
-    // Send transaction
+
+    const latestBlockhash = await connection.getLatestBlockhash('confirmed')
+    transaction.recentBlockhash = latestBlockhash.blockhash
+    transaction.feePayer = payer
+    transaction.partialSign(mintKeypair)
+
     const signature = await sendTransaction(transaction, connection, {
-      signers: [mintKeypair]
+      skipPreflight: false,
+      preflightCommitment: 'confirmed'
     })
     
-    // Wait for confirmation
-    await connection.confirmTransaction(signature, 'confirmed')
+    await connection.confirmTransaction({
+      signature,
+      ...latestBlockhash
+    }, 'confirmed')
     
     // Store token metadata (in production, save to your database/IPFS)
     console.log('Token created:', {
